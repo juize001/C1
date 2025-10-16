@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Large or temporary folders
+LHCb/
+ProcessedData/
+Unused/
