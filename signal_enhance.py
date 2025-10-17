@@ -4,6 +4,13 @@ import re
 import matplotlib.pyplot as plt
 import joblib
 
+########## TO DO LIST - SELECTIONS - https://arxiv.org/pdf/1408.0978
+# 1. Apply cut to D meson resonance range (1850-1880MeV) (already done)
+# 2. Veto Charmonium backgrounds from hadron misidentification (to muon)
+# 3. Veto some particle misidentifications e.g. kaons and pions
+# 4. Kaon misidentification from b_neutral - k*mumu
+# 5. Veto kaon and muon swapped mass of jpsik decay
+
 from analysis_func import kmu_mass_filter, acp_calc, split_into_q2_bins
 
 # data_2011 = pd.read_pickle('LHCb/dataset_2011.pkl')
@@ -64,6 +71,11 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 from zfit_func import fit_asymmetry_for_dataset
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
+sss = kmu_mass_filter(high_conf_signal.copy())
+plt.hist(sss['kmu_mass'], bins=50)
+plt.show()
+exit()
+
 A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_for_dataset(kmu_mass_filter(high_conf_signal.copy()))
 A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
