@@ -70,21 +70,16 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 from zfit_func import fit_asymmetry_for_dataset
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
-sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-plt.hist(sss['B_invariant_mass'], bins=100)
-sss = kmu_mass_filter(sss.copy())
-plt.hist(sss['B_invariant_mass'], bins=100)
-sss = veto_filter(sss.copy())
-plt.hist(sss['B_invariant_mass'], bins=100)
-plt.show()
+# sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
+high_conf_signal_with_vetoes = kmu_mass_filter(high_conf_signal.copy())
+high_conf_signal_with_vetoes = veto_filter(high_conf_signal_with_vetoes.copy())
 
-A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_for_dataset(kmu_mass_filter(sss.copy()))
+A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_for_dataset(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
-exit()
 
-binned_selected_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
+binned_selected_data, _, bin_bounds = split_into_q2_bins(high_conf_signal_with_vetoes.copy())
 results = []
 for bin_idx, dat in binned_selected_data.items():  # .items() gives both key and value
     dat = kmu_mass_filter(dat)
