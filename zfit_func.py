@@ -46,12 +46,14 @@ def fit_asymmetry_for_dataset(df):
     # HESSE errors
     try:
         result.hesse()
+        print(result)
     except Exception:
+        print('ZFIT FIT CONVERGENCE HAS FAILED, CHECK THE DATA OR FIT PARAMETERS!!!!!')
         pass
-    print(result)
     print(f"Function minimum: {result.fmin}")
     print(f"Converged: {result.converged}")
     print(f"Valid: {result.valid}")
+    
 
     val_Np, err_Np = get_val_err(result, Nsig_plus)
     val_Nm, err_Nm = get_val_err(result, Nsig_minus)
