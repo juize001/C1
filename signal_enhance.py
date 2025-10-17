@@ -6,12 +6,11 @@ import joblib
 
 ########## TO DO LIST - SELECTIONS - https://arxiv.org/pdf/1408.0978
 # 1. Apply cut to D meson resonance range (1850-1880MeV) (already done)
-# 2. Veto Charmonium backgrounds from hadron misidentification (to muon)
-# 3. Veto some particle misidentifications e.g. kaons and pions
-# 4. Kaon misidentification from b_neutral - k*mumu
-# 5. Veto kaon and muon swapped mass of jpsik decay
+# 2. Veto Charmonium backgrounds from hadron misidentification to muon (done)
+# 3. Veto some particle misidentifications e.g. kaons and pions (done)
+# 4. Veto kaon and muon swapped mass of jpsik decay (done)
 
-from analysis_func import kmu_mass_filter, acp_calc, split_into_q2_bins
+from analysis_func import kmu_mass_filter, acp_calc, split_into_q2_bins, veto_filter
 
 # data_2011 = pd.read_pickle('LHCb/dataset_2011.pkl')
 # samesign_2011 = pd.read_pickle('LHCb/samesign_2011.pkl')
@@ -71,15 +70,21 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 from zfit_func import fit_asymmetry_for_dataset
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
-sss = kmu_mass_filter(high_conf_signal.copy())
-plt.hist(sss['kmu_mass'], bins=50)
+sss = high_conf_signal.copy()
+plt.hist(sss['B_invariant_mass'], bins=100)
 plt.show()
-exit()
+sss = kmu_mass_filter(sss.copy())
+plt.hist(sss['B_invariant_mass'], bins=100)
+plt.show()
+sss = veto_filter(sss.copy())
+plt.hist(sss['B_invariant_mass'], bins=100)
+plt.show()
 
 A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_for_dataset(kmu_mass_filter(high_conf_signal.copy()))
 A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
+exit()
 
 binned_selected_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
 results = []

@@ -23,12 +23,37 @@ def split_into_q2_bins(data, bin_bounds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12.5, 15
     return binned_data, binned_resonant_data, bin_bounds
 
 def kmu_mass(k_E, mu_E, k_px, k_py, k_pz, mu_px, mu_py, mu_pz):
-        E_tot = k_E + mu_E
-        px_tot = k_px + mu_px
-        py_tot = k_py + mu_py
-        pz_tot = k_pz + mu_pz
-        inv_mass = E_tot**2 - (px_tot**2 + py_tot**2 + pz_tot**2)
-        return np.sqrt(np.maximum(inv_mass, 0.0))
+    E_tot = k_E + mu_E
+    px_tot = k_px + mu_px
+    py_tot = k_py + mu_py
+    pz_tot = k_pz + mu_pz
+    inv_mass = E_tot**2 - (px_tot**2 + py_tot**2 + pz_tot**2)
+    return np.sqrt(np.maximum(inv_mass, 0.0))
+
+def kmu_mass_muon_hypothesis(k_px, k_py, k_pz, mu_px, mu_py, mu_pz):
+    m_mu = 105.6583755  # GeV
+    # recompute kaon energy under muon mass
+    k_E = np.sqrt(k_px**2 + k_py**2 + k_pz**2 + m_mu**2)
+    mu_E = np.sqrt(mu_px**2 + mu_py**2 + mu_pz**2 + m_mu**2)
+    E_tot = k_E + mu_E
+    px_tot = k_px + mu_px
+    py_tot = k_py + mu_py
+    pz_tot = k_pz + mu_pz
+    inv_mass2 = E_tot**2 - (px_tot**2 + py_tot**2 + pz_tot**2)
+    return np.sqrt(np.maximum(inv_mass2, 0.0))
+
+def jpsik_swapped_hypothesis(k_px, k_py, k_pz, mu_px, mu_py, mu_pz):
+    m_mu = 105.6583755  # MeV
+    m_k = 493.677 # MeV
+    # recompute kaon energy under muon mass
+    k_E = np.sqrt(k_px**2 + k_py**2 + k_pz**2 + m_mu**2)
+    mu_E = np.sqrt(mu_px**2 + mu_py**2 + mu_pz**2 + m_k**2)
+    E_tot = k_E + mu_E
+    px_tot = k_px + mu_px
+    py_tot = k_py + mu_py
+    pz_tot = k_pz + mu_pz
+    inv_mass2 = E_tot**2 - (px_tot**2 + py_tot**2 + pz_tot**2)
+    return np.sqrt(np.maximum(inv_mass2, 0.0))
 
 def kmu_mass_filter(fs_data):
     fs_data = fs_data[(fs_data['B_invariant_mass'] < 5500) & (fs_data['B_invariant_mass'] > 5000)].copy()
@@ -39,6 +64,37 @@ def kmu_mass_filter(fs_data):
 
     fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4]
     fs_data = fs_data[(fs_data['kmu_mass'] < 1840) | (fs_data['kmu_mass'] > 1890)]
+    return fs_data
+
+def veto_filter(fs_dataa):
+    m_jpsik = 3096.916
+    m_psi2s = 3686.109
+    veto_window = 50
+
+    # veto hadron misidentification as muon
+    fs_data = fs_dataa.copy()
+    fs_data['kmu_mass'] = kmu_mass_muon_hypothesis(fs_data['Kaon_4_momentum_x_component'], fs_data['Kaon_4_momentum_y_component'],
+    fs_data['Kaon_4_momentum_z_component'], fs_data['Opposite_sign_muon_4_momentum_x_component'],
+    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
+    mask_keep = ~(
+    (fs_data['Kaon_PID_NN_score_for_muon_hypothesis'] > 0.5) &
+    ((np.abs(fs_data['kmu_mass'] - m_jpsik) < veto_window) |
+     (np.abs(fs_data['kmu_mass'] - m_psi2s) < veto_window)))
+    fs_data = fs_data[mask_keep].copy()
+
+    # remove resonance from hadron and muon being misidentified as each other (swap)
+    fs_data['kmu_mass'] = jpsik_swapped_hypothesis(fs_data['Kaon_4_momentum_x_component'], fs_data['Kaon_4_momentum_y_component'],
+    fs_data['Kaon_4_momentum_z_component'], fs_data['Opposite_sign_muon_4_momentum_x_component'],
+    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
+    fs_data = fs_data[abs(fs_data['kmu_mass'] - m_jpsik) > veto_window]
+
+    # Keep only tracks that are muon-like and NOT pion-like
+    mask_muon = (
+        (fs_data['Opposite_sign_muon_PID_NN_score_for_muon_hypothesis'] > 0.5) & # muon PID threshold
+        (fs_data['Opposite_sign_muon_PID_NN_score_for_pion_hypothesis'] < 0.3) # pion PID threshold
+    )
+    fs_data = fs_data[mask_muon]
+
     return fs_data
 
 def acp_calc(pd1, pd2):
