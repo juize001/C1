@@ -63,7 +63,7 @@ def kmu_mass_filter(fs_data):
                                 fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
 
     fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4]
-    fs_data = fs_data[(fs_data['kmu_mass'] < 1840) | (fs_data['kmu_mass'] > 1890)]
+    fs_data = fs_data[(fs_data['kmu_mass'] < 1850) | (fs_data['kmu_mass'] > 1880)]
     return fs_data
 
 def veto_filter(fs_dataa):
