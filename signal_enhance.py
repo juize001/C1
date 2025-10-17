@@ -5,10 +5,13 @@ import matplotlib.pyplot as plt
 import joblib
 
 ########## TO DO LIST - SELECTIONS - https://arxiv.org/pdf/1408.0978
-# 1. Apply cut to D meson resonance range (1850-1880MeV) (already done)
-# 2. Veto Charmonium backgrounds from hadron misidentification to muon (done)
-# 3. Veto some particle misidentifications e.g. kaons and pions (done)
-# 4. Veto kaon and muon swapped mass of jpsik decay (done)
+# 1. (done) Apply cut to D meson resonance range (1850-1880MeV)
+# 2. (done) Veto Charmonium backgrounds from hadron misidentification to muon
+# 3. (done) Veto some particle misidentifications e.g. kaons and pions
+# 4. (done) Veto kaon and muon swapped mass of jpsik decay
+# 5. Research standard model predictions for CP asymmetry based on dimuon mass squared
+# 6. Test the fit bias e.g. generate some data based on fit PDF and calculate the goodness of fit for each set
+# 7. Quantify accuracy and any biases of the ML model, include statistics and graphs
 
 from analysis_func import kmu_mass_filter, acp_calc, split_into_q2_bins, veto_filter
 
