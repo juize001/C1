@@ -56,14 +56,13 @@ def jpsik_swapped_hypothesis(k_px, k_py, k_pz, mu_px, mu_py, mu_pz):
     return np.sqrt(np.maximum(inv_mass2, 0.0))
 
 def kmu_mass_filter(fs_data):
-    fs_data = fs_data[(fs_data['B_invariant_mass'] < 5500) & (fs_data['B_invariant_mass'] > 5000)].copy()
+    fs_data = fs_data[(fs_data['B_invariant_mass'] < 5700) & (fs_data['B_invariant_mass'] > 5150)].copy()
     fs_data['kmu_mass'] = kmu_mass(fs_data['Kaon_4_momentum_energy_component'], fs_data['Opposite_sign_muon_4_momentum_energy_component'],
                                 fs_data['Kaon_4_momentum_x_component'], fs_data['Kaon_4_momentum_y_component'],
                                 fs_data['Kaon_4_momentum_z_component'], fs_data['Opposite_sign_muon_4_momentum_x_component'],
                                 fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
-
-    fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4]
-    fs_data = fs_data[(fs_data['kmu_mass'] < 1850) | (fs_data['kmu_mass'] > 1880)]
+    fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4] # removes JPsiK decays where the muon was misidentified as kaon
+    fs_data = fs_data[(fs_data['kmu_mass'] < 1850) | (fs_data['kmu_mass'] > 1880)] # removes resonant D meson decays (1868MeV) although only 30 events (random distribution) so might be unnecessary
     return fs_data
 
 def veto_filter(fs_dataa):
@@ -77,24 +76,19 @@ def veto_filter(fs_dataa):
     fs_data['Kaon_4_momentum_z_component'], fs_data['Opposite_sign_muon_4_momentum_x_component'],
     fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
     mask_keep = ~(
-    (fs_data['Kaon_PID_NN_score_for_muon_hypothesis'] > 0.5) &
+    (fs_data['Kaon_PID_NN_score_for_muon_hypothesis'] > -100) &
     ((np.abs(fs_data['kmu_mass'] - m_jpsik) < veto_window) |
      (np.abs(fs_data['kmu_mass'] - m_psi2s) < veto_window)))
-    fs_data = fs_data[mask_keep].copy()
+    fs_data = fs_data[mask_keep].copy() # only removes 13 out of 3000+ events, debatable whether to keep or not
 
     # remove resonance from hadron and muon being misidentified as each other (swap)
     fs_data['kmu_mass'] = jpsik_swapped_hypothesis(fs_data['Kaon_4_momentum_x_component'], fs_data['Kaon_4_momentum_y_component'],
     fs_data['Kaon_4_momentum_z_component'], fs_data['Opposite_sign_muon_4_momentum_x_component'],
     fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'])
     fs_data = fs_data[abs(fs_data['kmu_mass'] - m_jpsik) > veto_window]
-
     # Keep only tracks that are muon-like and NOT pion-like
-    mask_muon = (
-        (fs_data['Opposite_sign_muon_PID_NN_score_for_muon_hypothesis'] > 0.5) & # muon PID threshold
-        (fs_data['Opposite_sign_muon_PID_NN_score_for_pion_hypothesis'] < 0.3) # pion PID threshold
-    )
-    fs_data = fs_data[mask_muon]
-
+    # mask_muon = (fs_data['Opposite_sign_muon_PID_NN_score_for_pion_hypothesis'] < 0.8) # pion PID threshold, large spread
+    # fs_data = fs_data[mask_muon]
     return fs_data
 
 def acp_calc(pd1, pd2):
