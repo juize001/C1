@@ -48,6 +48,10 @@ def fit_asymmetry_for_dataset(df):
         result.hesse()
     except Exception:
         pass
+    print(result)
+    print(f"Function minimum: {result.fmin}")
+    print(f"Converged: {result.converged}")
+    print(f"Valid: {result.valid}")
 
     val_Np, err_Np = get_val_err(result, Nsig_plus)
     val_Nm, err_Nm = get_val_err(result, Nsig_minus)
