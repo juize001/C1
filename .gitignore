@@ -9,3 +9,6 @@ __pycache__/
 LHCb/
 ProcessedData/
 Unused/
+
+# png
+*.png

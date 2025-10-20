@@ -71,6 +71,46 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 # high_conf_signal.to_pickle("/Users/zifei/Desktop/C1/ProcessedData/first_selection_data3.pkl")
 
 
+# --- perform fit bias analysis and calculate pulls --- #
+#from zfit_func_pulls import *
+#import tensorflow as tf
+#binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
+#obs = zfit.Space('mass', limits=(5200, 5600))
+
+#all_pulls = {}
+
+#for bin_idx, dat in binned_data.items():
+    #if dat.empty:
+    #    continue
+    
+    #print(f"\n=== Q² bin {bin_idx} ===")
+    #A_raw, A_raw_err, Np, Nm, fit_params = fit_asymmetry_cb(dat)
+    # Build zfit model from fitted parameters
+    #model_plus, model_minus = build_model(fit_params, obs)
+    # Run toy study
+    #pulls, failed = run_toy_study(model_plus, model_minus, fit_params, ntoys=100)
+    #print(f"Toys completed: {len(pulls)}, failed: {failed}")
+
+    #all_pulls[bin_idx] = {
+    #    "pulls": pulls,
+    #    "failed": failed,
+    #    "fit_params": fit_params
+    #}
+
+    # --- SAVE AFTER EACH BIN ---
+    #joblib.dump(all_pulls, "pulls_per_q2_bin.pkl")
+    #print("Progress saved.")
+
+    # --- RESET GRAPH after each bin ---
+    #tf.compat.v1.reset_default_graph()
+    #print("Graph reset.\n")
+
+    # Plot
+    #mean, std = plot_pulls(pulls, title=f"Q² bin {bin_idx}")
+    #print(f"Pull mean={mean:.3f}, std={std:.3f}")
+
+#exit()
+
 from zfit_func import fit_asymmetry_for_dataset
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
