@@ -16,13 +16,14 @@ data_2012d = pd.read_pickle('LHCb/dataset_2012_MagnetDown.pkl')
 data_2012 = pd.concat([data_2012u, data_2012d])
 # fs_data = pd.read_pickle("ProcessedData/first_selection_data.pkl")
 # print(len(samesign_2011['B invariant mass']))
-
-for item in list(data_2012d):
+for item in list(data_2012):
     print(item)
 data_2012.columns = [re.sub(r'[^A-Za-z0-9_]', '_', c) for c in data_2012.columns]
-# plt.hist(fs_data['dimuon_system_invariant_mass'], bins=1000)
+# data_kmumu.columns = [re.sub(r'[^A-Za-z0-9_]', '_', c) for c in data_kmumu.columns]
+# data_kmumu = kmu_mass_filter(data_kmumu)
+plt.hist(data_2012['Opposite_sign_muon_PID_NN_score_for_kaon_hypothesis'], bins=100)
 # plt.hist(data_2012d['Magnet polarity'], bins=10)
 # plt.hist(data_2012u['Magnet polarity'], bins=10)
-plt.hist(data_2012['Kaon_PID_NN_score_for_muon_hypothesis'], bins=100)
+# plt.hist(data_kmumu['kmu_mass'], bins=500, density=True)
 plt.grid()
 plt.show()

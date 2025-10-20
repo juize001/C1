@@ -13,6 +13,9 @@ import joblib
 # 6. Test the fit bias e.g. generate some data based on fit PDF and calculate the goodness of fit for each set
 # 7. Quantify accuracy and any biases of the ML model, include statistics and graphs
 
+# detector resolution for invariant mass - https://lhcb.web.cern.ch/speakersbureau/html/PerformanceNumbers.html
+# paper on LHCb setup and detector performance - https://iopscience.iop.org/article/10.1088/1748-0221/3/08/S08005/pdf
+
 from analysis_func import *
 
 # data_2011 = pd.read_pickle('LHCb/dataset_2011.pkl')
@@ -113,11 +116,12 @@ if 1 == 2:
     exit()
 
 
-from zfit_func import *
+# from zfit_func import *
+# from zfit_func_pulls import *
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-high_conf_signal_with_vetoes = kmu_mass_filter(high_conf_signal.copy())
-high_conf_signal_with_vetoes = veto_filter(high_conf_signal_with_vetoes.copy())
+high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True)
+exit()
 
 A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
