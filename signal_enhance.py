@@ -13,7 +13,7 @@ import joblib
 # 6. Test the fit bias e.g. generate some data based on fit PDF and calculate the goodness of fit for each set
 # 7. Quantify accuracy and any biases of the ML model, include statistics and graphs
 
-from analysis_func import kmu_mass_filter, acp_calc, split_into_q2_bins, veto_filter
+from analysis_func import *
 
 # data_2011 = pd.read_pickle('LHCb/dataset_2011.pkl')
 # samesign_2011 = pd.read_pickle('LHCb/samesign_2011.pkl')
@@ -48,7 +48,7 @@ training_labels = '|'.join(training_labels)
 # from sklearn.inspection import permutation_importance
 import lightgbm as lgb
 
-from training_func import train_model, apply_model
+from training_func import *
 # lgbm, *_ = train_model(signal_data, background_data, rocauc=True)
 # joblib.dump(lgbm, 'Models/model_ss2012.pkl')
 lgbm = joblib.load('Models/model_ss2012.pkl')
@@ -72,52 +72,54 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 
 # --- perform fit bias analysis and calculate pulls --- #
-#from zfit_func_pulls import *
-#import tensorflow as tf
-#binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
-#obs = zfit.Space('mass', limits=(5200, 5600))
+if 1 == 2:
+    from zfit_func_pulls import *
+    import tensorflow as tf
+    binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
+    obs = zfit.Space('mass', limits=(5200, 5600))
 
-#all_pulls = {}
+    all_pulls = {}
 
-#for bin_idx, dat in binned_data.items():
-    #if dat.empty:
-    #    continue
-    
-    #print(f"\n=== Q² bin {bin_idx} ===")
-    #A_raw, A_raw_err, Np, Nm, fit_params = fit_asymmetry_cb(dat)
-    # Build zfit model from fitted parameters
-    #model_plus, model_minus = build_model(fit_params, obs)
-    # Run toy study
-    #pulls, failed = run_toy_study(model_plus, model_minus, fit_params, ntoys=100)
-    #print(f"Toys completed: {len(pulls)}, failed: {failed}")
+    for bin_idx, dat in binned_data.items():
+        if dat.empty:
+            continue
+        
+        print(f"\n=== Q² bin {bin_idx} ===")
+        A_raw, A_raw_err, Np, Nm, fit_params = fit_asymmetry_cb(dat)
+        # Build zfit model from fitted parameters
+        model_plus, model_minus = build_model(fit_params, obs)
+        # Run toy study
+        pulls, failed = run_toy_study(model_plus, model_minus, fit_params, ntoys=100)
+        print(f"Toys completed: {len(pulls)}, failed: {failed}")
 
-    #all_pulls[bin_idx] = {
-    #    "pulls": pulls,
-    #    "failed": failed,
-    #    "fit_params": fit_params
-    #}
+        all_pulls[bin_idx] = {
+        "pulls": pulls,
+        "failed": failed,
+        "fit_params": fit_params
+        }
 
-    # --- SAVE AFTER EACH BIN ---
-    #joblib.dump(all_pulls, "pulls_per_q2_bin.pkl")
-    #print("Progress saved.")
+        # --- SAVE AFTER EACH BIN ---
+        joblib.dump(all_pulls, "pulls_per_q2_bin.pkl")
+        print("Progress saved.")
 
-    # --- RESET GRAPH after each bin ---
-    #tf.compat.v1.reset_default_graph()
-    #print("Graph reset.\n")
+        # --- RESET GRAPH after each bin ---
+        tf.compat.v1.reset_default_graph()
+        print("Graph reset.\n")
 
-    # Plot
-    #mean, std = plot_pulls(pulls, title=f"Q² bin {bin_idx}")
-    #print(f"Pull mean={mean:.3f}, std={std:.3f}")
+        # Plot
+        mean, std = plot_pulls(pulls, title=f"Q² bin {bin_idx}")
+        print(f"Pull mean={mean:.3f}, std={std:.3f}")
 
-#exit()
+    exit()
 
-from zfit_func import fit_asymmetry_for_dataset
+
+from zfit_func import *
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
 high_conf_signal_with_vetoes = kmu_mass_filter(high_conf_signal.copy())
 high_conf_signal_with_vetoes = veto_filter(high_conf_signal_with_vetoes.copy())
 
-A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_for_dataset(high_conf_signal_with_vetoes.copy())
+A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
@@ -129,7 +131,7 @@ for bin_idx, dat in binned_selected_data.items():  # .items() gives both key and
     if dat.empty:
         continue
     try:
-        A_raw, A_raw_err, val_Np, val_Nm = fit_asymmetry_for_dataset(dat)
+        A_raw, A_raw_err, val_Np, val_Nm = fit_asymmetry_cb(dat)
     except Exception as e:
         print(f"Bin {bin_idx} failed: {e}")
         continue

@@ -158,6 +158,7 @@ def run_toy_study(model_plus, model_minus, fit_params, ntoys=100):
     failed = 0
 
     for i in range(ntoys):
+        # print(f'Currently on toydata number {i}')
         toy_plus = model_plus.sample()
         toy_minus = model_minus.sample()
 
@@ -179,8 +180,8 @@ def plot_pulls(pulls, title="Pull Distribution"):
     plt.title(f"{title}\nmean={mean:.3f}, std={std:.3f}")
     plt.xlabel("(Fitted - True) / σ_fit")
     plt.ylabel("Density")
-    plt.savefig(f"plots/pulls_q2bin{bin_idx}.png")
-    #plt.show()
+    # plt.savefig(f"plots/pulls_q2bin{bin_idx}.png")
+    plt.show()
     return mean, std
 
 
