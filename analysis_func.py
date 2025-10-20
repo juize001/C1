@@ -37,7 +37,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
                                    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'],
                                    mu_pi_hypo=True)
     data.append(fs_data['kmu_mass'].copy())
-    fs_data = fs_data[(fs_data['kmu_mass'] < 1845) | (fs_data['kmu_mass'] > 1885)] # 98.76% removal |
+    fs_data = fs_data[(fs_data['kmu_mass'] < 1845) | (fs_data['kmu_mass'] > 1885)] # 98.76% removal | 98.03% kept
     datap.append(fs_data['kmu_mass'].copy())
 
 
@@ -60,7 +60,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
                                    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'],
                                    kmu_swap_hypo=True)
     data.append(fs_data['kmu_mass'].copy())
-    fs_data = fs_data[(fs_data['kmu_mass'] < 3075) | (fs_data['kmu_mass'] > 3118)] # 99.27% removal |
+    fs_data = fs_data[(fs_data['kmu_mass'] < 3075) | (fs_data['kmu_mass'] > 3118)] # 99.27% removal | 98.45% kept
     datap.append(fs_data['kmu_mass'].copy())
 
 
@@ -71,7 +71,8 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
             res.append({
             "yield_pre_veto": len(d),
             "yield_post_veto": len(dp),
-            "fraction_kept": (len(d) - len(dp)) / len(d),
+            "fraction_removed": (len(d) - len(dp)) / len(d),
+            "fraction_kept": len(dp) / len(d),
             })
             if visual:
                 plt.hist(d, bins=50)
