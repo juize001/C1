@@ -179,7 +179,7 @@ def run_toy_study(model_plus, model_minus, fit_params, ntoys=100):
 def plot_pulls(pulls, title="Pull Distribution"):
     plt.hist(pulls, bins=30, density=True, alpha=0.7, color="steelblue")
     mean, std = np.mean(pulls), np.std(pulls)
-    plt.axvline(0, color='red', linestyle='--')
+    plt.axvline(mean, color='red', linestyle='--')
     plt.title(f"{title}\nmean={mean:.3f}, std={std:.3f}")
     plt.xlabel("(Fitted - True) / σ_fit")
     plt.ylabel("Density")

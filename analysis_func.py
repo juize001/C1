@@ -204,10 +204,70 @@ def colour(dir, o_dir):
     # Save the workbook
     wb.save(o_dir)
 
-
-
 # fs_data = pd.read_pickle("/Users/zifei/Desktop/C1/ProcessedData/first_selection_data2.pkl")
 # plt.hist((kmu_mass_filter(fs_data)['kmu_mass']), bins=50)
 # plt.grid()
 # # plt.savefig('/Users/zifei/Desktop/kmu_minus.png', dpi=300)
 # plt.show()
+
+def find_threshold(data, model, training_labels, fit_function, thresholds=None):
+
+    if thresholds is None:
+        thresholds = np.linspace(0.5, 1, 200)
+
+    # Compute model probabilities
+    features = training_labels.split('|')
+    X = data[features]
+    preds = model.predict_proba(X)[:,1]
+
+    results = []
+    for i, t in enumerate(thresholds):
+        pred_signal = data[preds > t]
+        if len(pred_signal) == 0:
+            continue
+        try:
+            A_raw, A_raw_err, val_Np, val_Nm, *_ = fit_func(pred_signal)
+        except:
+            continue
+        results.append({
+            "threshold": t,
+            "A_raw": A_raw,
+            "A_raw_err": A_raw_err,
+            "Nsig_plus": val_Np,
+            "Nsig_minus": val_Nm,
+            "n_events": len(pred_signal)
+        })
+        if i % 50 == 0:
+            print(f"{i} out of {len(thresholds)} thresholds scanned")
+
+    results_df = pd.DataFrame(results).sort_values("threshold").reset_index(drop=True)
+    
+    # Find optimal threshold
+    min_idx = results_df['A_raw_err'].idxmin()
+    optimal_threshold = results_df.loc[min_idx, 'threshold']
+
+    # Plot
+    
+    plt.figure()
+    plt.errorbar(results_df["threshold"], results_df["A_raw"], yerr=results_df["A_raw_err"],
+                    fmt='o-', capsize=4, label=r'$A_{\rm raw}$')
+    plt.axvline(optimal_threshold, color='red', ls='--', label=f'Optimal t={optimal_threshold:.3f}')
+    plt.xlabel("Signal Probability Threshold")
+    plt.ylabel("Raw Asymmetry $A_{raw}$")
+    plt.title("Asymmetry vs Classifier Threshold")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    plt.figure()
+    plt.plot(results_df['threshold'], results_df['A_raw_err'], 'o-', label=r'$A_{\rm raw}$ uncertainty')
+    plt.scatter(optimal_threshold, results_df.loc[min_idx,'A_raw_err'], color='red', s=80, zorder=5)
+    plt.xlabel("Signal Probability Threshold")
+    plt.ylabel(r"Uncertainty on $A_{\rm raw}$")
+    plt.title("Uncertainty vs Threshold")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    print(f"Optimal threshold = {optimal_threshold:.4f} with minimum uncertainty = {results_df.loc[min_idx,'A_raw_err']:.5f}")
+    return optimal_threshold, results_df
