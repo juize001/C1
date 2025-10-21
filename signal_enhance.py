@@ -118,13 +118,13 @@ lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
 
 from zfit_func_pulls import fit_asymmetry_cb
 
-optimal_t, results_df = find_optimal_threshold(
-    data=non_resonance_data,
-    model=lgbm,
-    training_labels=training_labels,
-    fit_func=fit_asymmetry_cb)
-exit()
-
+if 1==2:
+    optimal_t, results_df = find_threshold(
+        data=non_resonance_data,
+        model=lgbm,
+        training_labels=training_labels,
+        fit_func=fit_asymmetry_cb)
+    exit()
 
 
 resonance_data = apply_model(signal_data.copy(), lgbm, threshold=0.95)
