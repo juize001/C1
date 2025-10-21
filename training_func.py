@@ -15,11 +15,11 @@ training_labels = ['Kaon_impact_parameter_chi2_wrt_primary_vertex', 'B_decay_ver
                    'B_cos_angle__between_line_of_flight_and_momentum', 'Isolation__B_mass_if_one_extra_track__best_fit__is_added',
                    'B_4_momentum_x_component', 'Isolation__B_vertex_delta_chi2_adding_one_extra_track__best_fit_',
                    'dimuon_system_impact_parameter_chi2_wrt_primary_vertex', 'B_impact_parameter_wrt_primary_vertex',
-                   'dimuon_system_flight_distance_chi2_wrt_primary_ver\ntex', 'B_decay_vertex_y_position',
+                   'dimuon_system_flight_distance_chi2_wrt_primary_vertex', 'B_decay_vertex_y_position',
                    'dimuon_system_cos_angle__between_line_of_flight_from_primary_vertex_and_momentum',
                    'B_magnitude_of_momentum_transverse_to_beam']
 training_labels = '|'.join(training_labels)
-def train_model(data_sig, data_back, training_labels=training_labels, t_params=[30, 2000, 0.2, 6], rocauc=False, feat_imp=False, class_output=False):
+def train_model(data_sig, data_back, training_labels=training_labels, t_params=[30, 2000, 0.2, 6], test_size=0.25, rocauc=False, feat_imp=False, class_output=False):
     data_sig['target'] = 1
     data_back['target'] = 0
     data = pd.concat([data_sig, data_back], ignore_index=True)
@@ -31,7 +31,7 @@ def train_model(data_sig, data_back, training_labels=training_labels, t_params=[
     # X = X.drop(columns=X.filter(regex='^Isolation').columns)
     X = X.drop(columns=X.filter(regex=f'^(?!.*{training_labels}).+$'))
     y = data['target']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.001)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
 
     lgbm = lgb.LGBMClassifier(early_stopping_round=t_params[0], n_estimators=t_params[1], learning_rate=t_params[2], max_depth=t_params[3])
     lgbm.fit(X_train, y_train, eval_set=[(X_test, y_test)])

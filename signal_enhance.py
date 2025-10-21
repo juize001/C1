@@ -3,6 +3,8 @@ import pandas as pd
 import re
 import matplotlib.pyplot as plt
 import joblib
+import seaborn as sns
+sns.set_style("darkgrid")
 
 ########## TO DO LIST - SELECTIONS - https://arxiv.org/pdf/1408.0978
 # 1. (done) Apply cut to D meson resonance range (1850-1880MeV)
@@ -36,7 +38,7 @@ non_resonance_data = data_2012[(data_2012['dimuon_system_invariant_mass'] < 2828
 background_data = samesign_2012
 
 # forbidden_vars = ['B_invariant_mass', 'dimuon_system_invariant_mass', 'Event_ID', 'Magnet_polarity']
-training_labels = ['Kaon_impact_parameter_chi2_wrt_primary_vertex', 'B_decay_vertex_fit_chi2', 'Kaon_PID_NN_score_for_muon_hypothesis', 'dimuon_system_flight_distance_wrt_B_decay_vertex', 'Isolation__B_vertex_delta_chi2_adding_two_extra_tracks__best_fits_', 'B_assumed_particle_type', 'Opposite_sign_muon_PID_NN_score_for_muon_hypothesis', 'Same_sign_muon_PID_NN_score_for_muon_hypothesis', 'Kaon_PID_NN_score_for_kaon_hypothesis', 'B_decay_vertex_x_position', 'B_cos_angle__between_line_of_flight_and_momentum', 'Isolation__B_mass_if_one_extra_track__best_fit__is_added', 'B_4_momentum_x_component', 'Isolation__B_vertex_delta_chi2_adding_one_extra_track__best_fit_', 'dimuon_system_impact_parameter_chi2_wrt_primary_vertex', 'B_impact_parameter_wrt_primary_vertex', 'dimuon_system_flight_distance_chi2_wrt_primary_ver\ntex', 'B_decay_vertex_y_position', 'dimuon_system_cos_angle__between_line_of_flight_from_primary_vertex_and_momentum', 'B_magnitude_of_momentum_transverse_to_beam']
+training_labels = ['Kaon_impact_parameter_chi2_wrt_primary_vertex', 'B_decay_vertex_fit_chi2', 'Kaon_PID_NN_score_for_muon_hypothesis', 'dimuon_system_flight_distance_wrt_B_decay_vertex', 'Isolation__B_vertex_delta_chi2_adding_two_extra_tracks__best_fits_', 'B_assumed_particle_type', 'Opposite_sign_muon_PID_NN_score_for_muon_hypothesis', 'Same_sign_muon_PID_NN_score_for_muon_hypothesis', 'Kaon_PID_NN_score_for_kaon_hypothesis', 'B_decay_vertex_x_position', 'B_cos_angle__between_line_of_flight_and_momentum', 'Isolation__B_mass_if_one_extra_track__best_fit__is_added', 'B_4_momentum_x_component', 'Isolation__B_vertex_delta_chi2_adding_one_extra_track__best_fit_', 'dimuon_system_impact_parameter_chi2_wrt_primary_vertex', 'B_impact_parameter_wrt_primary_vertex', 'dimuon_system_flight_distance_chi2_wrt_primary_vertex', 'B_decay_vertex_y_position', 'dimuon_system_cos_angle__between_line_of_flight_from_primary_vertex_and_momentum', 'B_magnitude_of_momentum_transverse_to_beam']
 training_labels = '|'.join(training_labels)
 # resonance_data = data[(abs(data['B invariant mass'] - 5280) < 150) & (abs(data['dimuon-system invariant mass'] - 3097) < 50)]
 
@@ -52,9 +54,19 @@ training_labels = '|'.join(training_labels)
 import lightgbm as lgb
 
 from training_func import *
-# lgbm, *_ = train_model(signal_data, background_data, rocauc=True)
-# joblib.dump(lgbm, 'Models/model_ss2012.pkl')
-lgbm = joblib.load('Models/model_ss2012.pkl')
+#lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.001)
+#joblib.dump(lgbm, 'Models/model_ss2012_20_full.pkl')
+#lgbm = joblib.load('Models/model_ss2012.pkl')
+lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
+
+from zfit_func_pulls import fit_asymmetry_cb
+
+optimal_t, results_df = find_optimal_threshold(
+    data=non_resonance_data,
+    model=lgbm,
+    training_labels=training_labels,
+    fit_func=fit_asymmetry_cb)
+exit()
 
 
 
@@ -135,7 +147,7 @@ for bin_idx, dat in binned_selected_data.items():  # .items() gives both key and
     if dat.empty:
         continue
     try:
-        A_raw, A_raw_err, val_Np, val_Nm = fit_asymmetry_cb(dat)
+        A_raw, A_raw_err, val_Np, val_Nm, _ = fit_asymmetry_cb(dat)
     except Exception as e:
         print(f"Bin {bin_idx} failed: {e}")
         continue
@@ -186,99 +198,4 @@ plt.tight_layout()
 plt.show()
 exit()
 
-# y_score_train = lgbm.predict(X_train)
-# y_score_test  = lgbm.predict(X_test)
-# fpr_train, tpr_train, _ = roc_curve(y_train, y_score_train)
-# fpr_test,  tpr_test,  _ = roc_curve(y_test,  y_score_test)
 
-# auc_train = auc(fpr_train, tpr_train)
-# auc_test  = auc(fpr_test,  tpr_test)
-
-# print(f"AUC (train): {auc_train:.4f}")
-# print(f"AUC (test):  {auc_test:.4f}")
-
-
-from scipy.interpolate import make_interp_spline
-thresholds = np.linspace(0.9, 0.999, 200)
-significance = []
-
-# output_dir = "/Users/zifei/Desktop/C1/ProcessedData"
-# data_test = X_test.copy()
-# data_test["y_true"] = y_test
-# data_test["y_pred"] = y_pred
-# threshold_dict = {}
-
-results = []
-for i,t in enumerate(thresholds):
-    pred_signal = non_resonance_data[preds[:,1] > t]
-    pred_signal = kmu_mass_filter(pred_signal)
-    try:
-        A_raw, A_raw_err, val_Np, val_Nm = fit_asymmetry_for_dataset(pred_signal)
-    except:
-        continue
-    results.append({
-        "threshold": t,
-        "A_raw": A_raw,
-        "A_raw_err": A_raw_err,
-        "Nsig_plus": val_Np,
-        "Nsig_minus": val_Nm,
-        "n_events": len(pred_signal)
-    })
-    print(f'{i} out of {len(thresholds)} values done!')
-results_df = pd.DataFrame(results).sort_values("threshold").reset_index(drop=True)
-plt.errorbar(results_df["threshold"], results_df["A_raw"],
-             yerr=results_df["A_raw_err"], fmt='o-', capsize=4)
-plt.xlabel("Signal Probability Threshold")
-plt.ylabel("Raw Asymmetry  $A_{raw}$")
-plt.title("Asymmetry vs Classifier Threshold")
-plt.grid()
-plt.tight_layout()
-plt.show()
-
-min_idx = results_df['A_raw_err'].idxmin()
-x_min = results_df.loc[min_idx, 'threshold']
-y_min = results_df.loc[min_idx, 'A_raw_err']
-plt.plot(results_df['threshold'], results_df['A_raw_err'], 'o-', label=r'$A_{\rm raw}$ uncertainty')
-plt.scatter(x_min, y_min, color='red', s=80, zorder=5, label=f'Minimum at {x_min:.3f}')
-plt.xlabel('Signal Probability Threshold')
-plt.ylabel(r'Uncertainty on $A_{\rm raw}$')
-plt.title(r'Uncertainty vs Threshold')
-plt.legend()
-# plt.annotate(f"min = {y_min:.4f}\nat t = {x_min:.3f}",
-#              xy=(x_min, y_min),
-#              xytext=(x_min + 0.05, y_min + 0.0005),
-#              arrowprops=dict(arrowstyle="->", lw=1.2))
-plt.grid()
-plt.show()
-
-    # pred_signal = y_pred > t
-    # S = np.sum((y_test == 1) & pred_signal)
-    # B = np.sum((y_test == 0) & pred_signal)
-    # threshold_dict[round(t, 3)] = data_test[data_test["y_pred"] > t]
-    # if S + B > 0:
-    #     significance.append(S / np.sqrt(S + B))
-    # else:
-    #     significance.append(0)
-# pd.to_pickle(threshold_dict, "/Users/zifei/Desktop/C1/ProcessedData/selection_with_thresholds.pkl")
-# thresholds = np.array(thresholds)
-# significance = np.array(significance)
-
-# spline = make_interp_spline(thresholds, significance, k=3)
-# x_smooth = np.linspace(thresholds.min(), thresholds.max(), 400)
-# y_smooth = spline(x_smooth)
-
-# max_idx = np.argmax(y_smooth)
-# best_threshold = x_smooth[max_idx]
-# max_significance = y_smooth[max_idx]
-# print(best_threshold)
-
-# plt.figure(figsize=(8, 5))
-# plt.plot(x_smooth, y_smooth, label='Cubic Spline Fit', linewidth=2)
-# plt.scatter(thresholds, significance, color='red', label='Binned Values')
-# plt.axvline(best_threshold, color='gray', linestyle='--', label=f'Max = {max_significance:.2f} at {best_threshold:.3f}')
-# plt.xlabel('Signal Probability Threshold')
-# plt.ylabel(r'S / $\sqrt{S + B}$')
-# plt.title('Significance vs. Classifier Threshold')
-# plt.legend()
-# plt.tight_layout()
-# plt.show()
