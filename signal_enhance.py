@@ -196,7 +196,3 @@ A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, diagnostics=True)
-
-
-
-
