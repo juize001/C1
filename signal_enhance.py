@@ -176,7 +176,8 @@ if 1 == 2:
 from zfit_func_pulls import *
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
+high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True, visual=True)
+exit()
 
 A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp

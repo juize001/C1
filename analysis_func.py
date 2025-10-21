@@ -50,7 +50,6 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
     mask_keep = ~((fs_data['Kaon_PID_NN_score_for_muon_hypothesis'] > -100) &
                   ((np.abs(fs_data['kmu_mass'] - m_jpsik) < veto_window) | (np.abs(fs_data['kmu_mass'] - m_psi2s) < veto_window)))
     fs_data = fs_data[mask_keep]
-    # fs_data = fs_data[(abs(fs_data['kmu_mass'] - 1680) > 40) & (fs_data['Opposite_sign_muon_PID_NN_score_for_kaon_hypothesis'] < 0.5)]
     datap.append(fs_data['kmu_mass'].copy())
 
 
@@ -75,8 +74,8 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
             "fraction_kept": len(dp) / len(d),
             })
             if visual:
-                plt.hist(d, bins=100)
-                plt.hist(dp, bins=100)
+                plt.hist(d, bins=50)
+                plt.hist(dp, bins=50)
                 plt.grid()
                 plt.ylabel('Yields')
                 plt.xlabel('Invariant Mass (MeV)')
