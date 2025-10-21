@@ -18,8 +18,10 @@ sns.set_style("darkgrid")
 def calc_acp_q2_bins(data, visual=False):
     binned_selected_data, _, bin_bounds = split_into_q2_bins(data.copy())
     results = []
+    all_pulls = joblib.load("binned_pulls.pkl")
     for bin_idx, dat in binned_selected_data.items():  # .items() gives both key and value
         dat = post_selection_vetoes(dat)
+
         if dat.empty:
             continue
         try:
@@ -27,8 +29,13 @@ def calc_acp_q2_bins(data, visual=False):
         except Exception as e:
             print(f"Bin {bin_idx} failed: {e}")
             continue
+
+        pulls = np.array(all_pulls[bin_idx]['pulls'])
+        pulls = pulls[np.isfinite(pulls)]
+        fit_syst_err = A_raw_err * np.std(pulls) / np.sqrt(len(pulls))
+
         A_raw = A_raw - jpsik_acp
-        A_raw_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2)
+        A_raw_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
 
         q2_low = bin_bounds[bin_idx]
         q2_high = bin_bounds[bin_idx + 1]
@@ -41,11 +48,14 @@ def calc_acp_q2_bins(data, visual=False):
             "q2_center": q2_center,
             "A_raw": A_raw,
             "A_raw_err": A_raw_err,
+            "jpsik_err": jpsik_acp_err,
+            "fit_syst_err": fit_syst_err,
             "Nsig_plus": val_Np,
             "Nsig_minus": val_Nm,
             "n_events": len(dat)
         })
     binned_data_all = pd.DataFrame(results).sort_values("q2_center").reset_index(drop=True)
+
     if visual:
         plt.errorbar(binned_data_all["q2_center"], binned_data_all["A_raw"],
                     yerr=binned_data_all["A_raw_err"], fmt='o', capsize=4)
@@ -56,15 +66,15 @@ def calc_acp_q2_bins(data, visual=False):
                 ha='center', va='bottom', fontsize=7, color='dimgray'
             )
         plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
-        plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
-        plt.fill_between(
-            binned_data_all["q2_center"],
-            A_raw_tot - A_raw_err_tot,  # lower edge of band
-            A_raw_tot + A_raw_err_tot,  # upper edge of band
-            color='gray',
-            alpha=0.2,
-            label=r'$\pm 0.02$ uncertainty zone'
-        )
+        # plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
+        # plt.fill_between(
+        #     binned_data_all["q2_center"],
+        #     A_raw_tot - A_raw_err_tot,  # lower edge of band
+        #     A_raw_tot + A_raw_err_tot,  # upper edge of band
+        #     color='gray',
+        #     alpha=0.2,
+        #     label=r'$\pm 0.02$ uncertainty zone'
+        # )
         for xval in [8, 11, 12.5, 15]:
             plt.axvline(x=xval, color='red', linestyle='-', linewidth=1)
         plt.xlabel("Dimuon Mass Squared")
@@ -144,7 +154,7 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 
 # --- perform fit bias analysis and calculate pulls --- #
-if 1 == 1:
+if 1 == 2:
     from zfit_func_pulls import *
     import gc
     import tensorflow as tf
@@ -193,11 +203,13 @@ if 1 == 1:
 from zfit_func_pulls import *
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True, visual=True)
-exit()
+high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 
-A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
-A_raw_tot = A_raw_tot - jpsik_acp
-A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
-print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
-binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, diagnostics=True)
+# A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+# A_raw_tot = A_raw_tot - jpsik_acp
+# A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
+# print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
+binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
+print(f"{'A_raw':>10} {'A_raw_err':>10} {'fit_syst_err':>12}")
+print(f"{binned_data_all['A_raw']:>10} {binned_data_all['A_raw_err']:>10} {binned_data_all['fit_syst_err']:>12}")
+

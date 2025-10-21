@@ -15,6 +15,7 @@ def fit_asymmetry_cb(df):
     data_plus  = zfit.Data.from_numpy(obs=obs, array=positive_data['B_invariant_mass'].values)
     data_minus = zfit.Data.from_numpy(obs=obs, array=negative_data['B_invariant_mass'].values)
 
+    sigma = 18.6
     # Parameters (shared shapes)
     mean  = zfit.Parameter('mean', 5283.8, 5200., 5360.)
     sigma = zfit.Parameter('sigma', 18.6, 1e-3, 200.)
