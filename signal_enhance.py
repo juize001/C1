@@ -123,7 +123,7 @@ if 1==2:
         data=non_resonance_data,
         model=lgbm,
         training_labels=training_labels,
-        fit_func=fit_asymmetry_cb)
+        fit_function=fit_asymmetry_cb)
     exit()
 
 

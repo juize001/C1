@@ -226,7 +226,7 @@ def find_threshold(data, model, training_labels, fit_function, thresholds=None):
         if len(pred_signal) == 0:
             continue
         try:
-            A_raw, A_raw_err, val_Np, val_Nm, *_ = fit_func(pred_signal)
+            A_raw, A_raw_err, val_Np, val_Nm, *_ = fit_function(pred_signal)
         except:
             continue
         results.append({
