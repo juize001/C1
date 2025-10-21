@@ -144,8 +144,9 @@ high_conf_signal = apply_model(non_resonance_data.copy(), lgbm)
 
 
 # --- perform fit bias analysis and calculate pulls --- #
-if 1 == 2:
+if 1 == 1:
     from zfit_func_pulls import *
+    import gc
     import tensorflow as tf
     binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
     obs = zfit.Space('mass', limits=(5200, 5600))
@@ -161,7 +162,7 @@ if 1 == 2:
         # Build zfit model from fitted parameters
         model_plus, model_minus = build_model(fit_params, obs)
         # Run toy study
-        pulls, failed = run_toy_study(model_plus, model_minus, fit_params, ntoys=100)
+        pulls, failed = run_toy_study(model_plus, model_minus, fit_params, ntoys=200)
         print(f"Toys completed: {len(pulls)}, failed: {failed}")
 
         all_pulls[bin_idx] = {
@@ -175,12 +176,16 @@ if 1 == 2:
         print("Progress saved.")
 
         # --- RESET GRAPH after each bin ---
-        tf.compat.v1.reset_default_graph()
+        
+
+        zfit.run.clear_graph_cache()     # clears zfit computation graph
+        gc.collect()   
+        # tf.compat.v1.reset_default_graph()
         print("Graph reset.\n")
 
         # Plot
-        mean, std = plot_pulls(pulls, title=f"Q² bin {bin_idx}")
-        print(f"Pull mean={mean:.3f}, std={std:.3f}")
+        # mean, std = plot_pulls(pulls, title=f"Q² bin {bin_idx}")
+        # print(f"Pull mean={mean:.3f}, std={std:.3f}")
 
     exit()
 
