@@ -210,6 +210,7 @@ high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 # A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 # print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
-print(f"{'A_raw':>10} {'A_raw_err':>10} {'fit_syst_err':>12}")
-print(f"{binned_data_all['A_raw']:>10} {binned_data_all['A_raw_err']:>10} {binned_data_all['fit_syst_err']:>12}")
+print(f"{'A_raw':>10} | {'A_raw_err':>10} | {'Fit_syst_err':>12}")
+for a, a_err, s_err in zip(binned_data_all['A_raw'], binned_data_all['A_raw_err'], binned_data_all['fit_syst_err']):
+    print(f"{a:>7.4f} +- {a_err:>7.4f} +- {s_err:>7.4f}")
 
