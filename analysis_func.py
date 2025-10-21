@@ -75,8 +75,8 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
             "fraction_kept": len(dp) / len(d),
             })
             if visual:
-                plt.hist(d, bins=50)
-                plt.hist(dp, bins=50)
+                plt.hist(d, bins=100)
+                plt.hist(dp, bins=100)
                 plt.grid()
                 plt.ylabel('Yields')
                 plt.xlabel('Invariant Mass (MeV)')
@@ -204,6 +204,8 @@ def colour(dir, o_dir):
     ws.conditional_formatting.add(cell_range, color_scale)
     # Save the workbook
     wb.save(o_dir)
+
+
 
 # fs_data = pd.read_pickle("/Users/zifei/Desktop/C1/ProcessedData/first_selection_data2.pkl")
 # plt.hist((kmu_mass_filter(fs_data)['kmu_mass']), bins=50)

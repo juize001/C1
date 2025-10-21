@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
 from analysis_func import get_val_err
+from scipy.stats import ks_2samp
 
 def fit_asymmetry_cb(df):
     # Split by charge
@@ -155,6 +156,8 @@ def run_toy_study(model_plus, model_minus, fit_params, ntoys=100):
              (fit_params['Nsig_minus'] + fit_params['Nsig_plus'])
 
     pulls = []
+    ks_stats = []
+    pvals = []
     failed = 0
 
     for i in range(ntoys):
