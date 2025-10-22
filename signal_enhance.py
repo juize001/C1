@@ -4,7 +4,7 @@ import re
 import matplotlib.pyplot as plt
 import joblib
 import seaborn as sns
-sns.set_style("darkgrid")
+# sns.set_style("darkgrid")
 
 ########## TO DO LIST - SELECTIONS - https://arxiv.org/pdf/1408.0978 - https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.111.151801
 # 1. Deal with unknown peak/resonance in Kmu mass plotted under dimuon mass hypothesis
@@ -66,20 +66,20 @@ def calc_acp_q2_bins(data, visual=False):
                 ha='center', va='bottom', fontsize=7, color='dimgray'
             )
         plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
-        # plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
-        # plt.fill_between(
-        #     binned_data_all["q2_center"],
-        #     A_raw_tot - A_raw_err_tot,  # lower edge of band
-        #     A_raw_tot + A_raw_err_tot,  # upper edge of band
-        #     color='gray',
-        #     alpha=0.2,
-        #     label=r'$\pm 0.02$ uncertainty zone'
-        # )
+        plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
+        plt.fill_between(
+            binned_data_all["q2_center"],
+            A_raw_tot - A_raw_err_tot,  # lower edge of band
+            A_raw_tot + A_raw_err_tot,  # upper edge of band
+            color='gray',
+            alpha=0.2,
+            label=r'$\pm 0.02$ uncertainty zone'
+        )
         for xval in [8, 11, 12.5, 15]:
             plt.axvline(x=xval, color='red', linestyle='-', linewidth=1)
-        plt.xlabel("Dimuon Mass Squared")
-        plt.ylabel("Raw Asymmetry  $A_{raw}$")
-        plt.title("Corrected Asymmetry vs Dimuon Mass Squared")
+        plt.xlabel("Dimuon Mass Squared (GeV^2/c^4)")
+        plt.ylabel("CP Asymmetry")
+        # plt.title("Corrected Asymmetry vs Dimuon Mass Squared")
         plt.grid()
         plt.tight_layout()
         plt.show()
@@ -205,10 +205,10 @@ from zfit_func_pulls import *
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
 high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 
-# A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
-# A_raw_tot = A_raw_tot - jpsik_acp
-# A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
-# print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
+A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+A_raw_tot = A_raw_tot - jpsik_acp
+A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
+print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
 print(f"{'A_raw':>10} | {'A_raw_err':>10} | {'Fit_syst_err':>12}")
 for a, a_err, s_err in zip(binned_data_all['A_raw'], binned_data_all['A_raw_err'], binned_data_all['fit_syst_err']):
