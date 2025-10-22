@@ -34,8 +34,8 @@ def calc_acp_q2_bins(data, visual=False):
         pulls = pulls[np.isfinite(pulls)]
         fit_syst_err = A_raw_err * np.std(pulls) / np.sqrt(len(pulls))
 
-        A_raw = A_raw - jpsik_acp
-        A_raw_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
+        Acp = A_raw - jpsik_acp
+        A_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
 
         q2_low = bin_bounds[bin_idx]
         q2_high = bin_bounds[bin_idx + 1]
@@ -46,7 +46,8 @@ def calc_acp_q2_bins(data, visual=False):
             "q2_low": q2_low,
             "q2_high": q2_high,
             "q2_center": q2_center,
-            "A_raw": A_raw,
+            "Acp": Acp,
+            "A_err": A_err,
             "A_raw_err": A_raw_err,
             "jpsik_err": jpsik_acp_err,
             "fit_syst_err": fit_syst_err,
@@ -57,8 +58,8 @@ def calc_acp_q2_bins(data, visual=False):
     binned_data_all = pd.DataFrame(results).sort_values("q2_center").reset_index(drop=True)
 
     if visual:
-        plt.errorbar(binned_data_all["q2_center"], binned_data_all["A_raw"],
-                    yerr=binned_data_all["A_raw_err"], fmt='o', capsize=4)
+        plt.errorbar(binned_data_all["q2_center"], binned_data_all["Acp"],
+                    yerr=binned_data_all["A_err"], fmt='o', capsize=4)
         # for _, row in binned_data_all.iterrows():
         #     plt.text(
         #         row["q2_center"], row["A_raw"] + 0.005,
@@ -210,7 +211,6 @@ A_raw_tot = A_raw_tot - jpsik_acp
 A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
 print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
-print(f"{'A_raw':>10} | {'A_raw_err':>10} | {'Fit_syst_err':>12}")
-for a, a_err, s_err in zip(binned_data_all['A_raw'], binned_data_all['A_raw_err'], binned_data_all['fit_syst_err']):
-    print(f"{a:>7.4f} +- {a_err:>7.4f} +- {s_err:>7.4f}")
-
+print(f"{'Acp':>7} | {'A_err':>7} | {'A_stat_err':>10} | {'Fit_syst_err':>12}")
+for a, a_err, s_err, a_rerr in zip(binned_data_all['Acp'], binned_data_all['A_err'], binned_data_all['fit_syst_err'], binned_data_all['A_raw_err']):
+    print(f"{a:>7.4f} +- {a_err:>7.4f} +- {a_rerr:>7.4f} +- {s_err:>7.4f}")
