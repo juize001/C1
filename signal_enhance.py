@@ -18,7 +18,7 @@ sns.set_style("darkgrid")
 def calc_acp_q2_bins(data, visual=False):
     binned_selected_data, _, bin_bounds = split_into_q2_bins(data.copy())
     results = []
-    all_pulls = joblib.load("binned_pulls.pkl")
+    all_pulls = joblib.load("binned_pulls2.pkl")
     for bin_idx, dat in binned_selected_data.items():  # .items() gives both key and value
         dat = post_selection_vetoes(dat)
 
@@ -159,7 +159,7 @@ if 1 == 2:
     import gc
     import tensorflow as tf
     binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
-    obs = zfit.Space('mass', limits=(5200, 5600))
+    obs = zfit.Space('mass', limits=(5150, 5600))
 
     all_pulls = {}
 
@@ -182,7 +182,7 @@ if 1 == 2:
         }
 
         # --- SAVE AFTER EACH BIN ---
-        joblib.dump(all_pulls, "pulls_per_q2_bin.pkl")
+        joblib.dump(all_pulls, "binned_pulls2.pkl")
         print("Progress saved.")
 
         # --- RESET GRAPH after each bin ---

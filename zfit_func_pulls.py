@@ -6,12 +6,13 @@ from analysis_func import get_val_err
 from scipy.stats import ks_2samp
 
 def fit_asymmetry_cb(df):
+    df = df[(df['B_invariant_mass'] > 5150) & (df['B_invariant_mass'] < 5600)]
     # Split by charge
     positive_data = df[df['B_assumed_particle_type'] > 0]
     negative_data = df[df['B_assumed_particle_type'] < 0]
 
     # Define observable and datasets
-    obs = zfit.Space('mass', limits=(5200, 5600))
+    obs = zfit.Space('mass', limits=(5150, 5600))
     data_plus  = zfit.Data.from_numpy(obs=obs, array=positive_data['B_invariant_mass'].values)
     data_minus = zfit.Data.from_numpy(obs=obs, array=negative_data['B_invariant_mass'].values)
 
@@ -69,6 +70,24 @@ def fit_asymmetry_cb(df):
     # Asymmetry and uncertainty
     A_raw = (val_Nm - val_Np) / (val_Nm + val_Np)
     A_raw_err = 2 / (val_Nm + val_Np)**2 * np.sqrt((val_Np * err_Nm)**2 + (val_Nm * err_Np)**2)
+
+    # x = np.linspace(5150, 5600, 500)
+    # y_plus  = model_plus.pdf(x).numpy() * len(positive_data) * (x[1]-x[0])
+    # y_minus = model_minus.pdf(x).numpy() * (Nsig_minus + Nbkg_minus) * (x[1]-x[0])
+    # plt.figure(figsize=(10,6))
+    # plt.hist(positive_data['B_invariant_mass'], bins=100, range=(5150, 5600),
+    #          alpha=0.5, label='B+ data', color='blue')
+    # plt.hist(negative_data['B_invariant_mass'], bins=100, range=(5150, 5600),
+    #          alpha=0.5, label='B- data', color='red')
+
+    # # Overlay fitted curves
+    # plt.plot(x, y_plus, color='blue', lw=2, label='B+ fit')
+    # plt.plot(x, y_minus, color='red', lw=2, label='B- fit')
+
+    # plt.xlabel('B invariant mass [MeV]')
+    # plt.ylabel('Events per bin')
+    # plt.legend()
+    # plt.show()
 
     return A_raw, A_raw_err, val_Np, val_Nm, {
         "mean": mean.value(),
