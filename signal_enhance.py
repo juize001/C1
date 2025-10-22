@@ -32,11 +32,23 @@ def calc_acp_q2_bins(data, visual=False):
 
         pulls = np.array(all_pulls[bin_idx]['pulls'])
         pulls = pulls[np.isfinite(pulls)]
-        fit_syst_err = A_raw_err * np.std(pulls) / np.sqrt(len(pulls))
-        # fit_syst_err = np.sqrt(np.mean(pulls) ** 2 + fit_syst_err ** 2)
+        N_pulls = len(pulls)
+        pull_mean = float(np.mean(pulls))
+        pull_std  = float(np.std(pulls, ddof=1))
+
+        # Absolute bias on A_raw 
+        bias = pull_mean * A_raw_err
+        # Inflate statistical error if pull width != 1
+        stat_err = A_raw_err * pull_std
+
+        fit_syst_err = A_raw_err * pull_std / np.sqrt(N_pulls)
+
+        # total systematic errors
+        fit_syst_err = np.sqrt(bias**2 + fit_syst_err**2)
+        sys_err = np.sqrt(jpsik_acp_err**2 + fit_syst_err**2)
 
         Acp = A_raw - jpsik_acp
-        A_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
+        A_err = np.sqrt(stat_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
 
         q2_low = bin_bounds[bin_idx]
         q2_high = bin_bounds[bin_idx + 1]
@@ -49,6 +61,8 @@ def calc_acp_q2_bins(data, visual=False):
             "q2_center": q2_center,
             "Acp": Acp,
             "A_err": A_err,
+            "stat_err": stat_err,
+            "sys_err": sys_err,
             "A_raw_err": A_raw_err,
             "jpsik_err": jpsik_acp_err,
             "fit_syst_err": fit_syst_err,
@@ -79,7 +93,7 @@ def calc_acp_q2_bins(data, visual=False):
         )
         for xval in [8, 11, 12.5, 15]:
             plt.axvline(x=xval, color='red', linestyle='-', linewidth=1)
-        plt.xlabel("Dimuon Mass Squared (GeV^2/c^4)")
+        plt.xlabel("Dimuon Mass Squared (GeV$^2$/$c^4$)")
         plt.ylabel("CP Asymmetry")
         # plt.title("Corrected Asymmetry vs Dimuon Mass Squared")
         plt.grid()
@@ -210,11 +224,11 @@ plt.show()
 high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True, visual=True)
 exit()
 
-A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+A_raw_tot, A_raw_err_tot_stat, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
-A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
-print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
+A_raw_err_tot = np.sqrt(A_raw_err_tot_stat ** 2 + jpsik_acp_err ** 2)
+print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot} +- {A_raw_err_tot_stat} +- {jpsik_acp_err}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
-print(f"{'Acp':>7} | {'A_err':>7} | {'A_stat_err':>10} | {'Fit_syst_err':>12}")
-for a, a_err, s_err, a_rerr in zip(binned_data_all['Acp'], binned_data_all['A_err'], binned_data_all['fit_syst_err'], binned_data_all['A_raw_err']):
-    print(f"{a:>7.4f} +- {a_err:>7.4f} +- {a_rerr:>7.4f} +- {s_err:>7.4f}")
+print(f"{'Acp':>7} | {'A_err':>7} | {'stat_err':>10} | {'sys_err':>12}")
+for a, a_err, stat_err, sys_err in zip(binned_data_all['Acp'], binned_data_all['A_err'], binned_data_all['stat_err'], binned_data_all['sys_err']):
+    print(f"{a:>7.4f} +- {a_err:>7.4f} +- {stat_err:>7.4f} +- {sys_err:>7.4f}")
