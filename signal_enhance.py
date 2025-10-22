@@ -59,12 +59,12 @@ def calc_acp_q2_bins(data, visual=False):
     if visual:
         plt.errorbar(binned_data_all["q2_center"], binned_data_all["A_raw"],
                     yerr=binned_data_all["A_raw_err"], fmt='o', capsize=4)
-        for _, row in binned_data_all.iterrows():
-            plt.text(
-                row["q2_center"], row["A_raw"] + 0.005,
-                f"N⁺={int(row['Nsig_plus'])}\nN⁻={int(row['Nsig_minus'])}",
-                ha='center', va='bottom', fontsize=7, color='dimgray'
-            )
+        # for _, row in binned_data_all.iterrows():
+        #     plt.text(
+        #         row["q2_center"], row["A_raw"] + 0.005,
+        #         f"N⁺={int(row['Nsig_plus'])}\nN⁻={int(row['Nsig_minus'])}",
+        #         ha='center', va='bottom', fontsize=7, color='dimgray'
+        #     )
         plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
         plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
         plt.fill_between(
