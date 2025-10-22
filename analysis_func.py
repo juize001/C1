@@ -28,7 +28,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
     m_jpsik, m_psi2s, veto_window = 3096.916, 3686.109, 60 # MeV
     data, datap = [], []
     fs_data = fs_data[(fs_data['B_invariant_mass'] < 5700) & (fs_data['B_invariant_mass'] > 5000)].copy() # reduce candidate mass range
-    fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4] # removes JPsiK decays where the muon was misidentified as kaon
+    # fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4] # removes JPsiK decays where the muon was misidentified as kaon
 
 
     # D meson - Pion misidentified as Muon (1864.84+-0.17 MeV/c2)
@@ -37,7 +37,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
                                    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'],
                                    mu_pi_hypo=True)
     data.append(fs_data['kmu_mass'].copy())
-    fs_data = fs_data[(fs_data['kmu_mass'] < 1845) | (fs_data['kmu_mass'] > 1885)] # 98.76% removal | 98.03% kept
+    fs_data = fs_data[(fs_data['kmu_mass'] < 1845) | (fs_data['kmu_mass'] > 1885)] # 98.76% removal | 98.99% kept
     datap.append(fs_data['kmu_mass'].copy())
 
 
@@ -47,7 +47,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
                                     fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'],
                                     k_mu_hypo=True)
     data.append(fs_data['kmu_mass'].copy())
-    mask_keep = ~((fs_data['Kaon_PID_NN_score_for_muon_hypothesis'] > -100) &
+    mask_keep = ~((fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] < 0.4) & # >99% removal | 98.88% kept
                   ((np.abs(fs_data['kmu_mass'] - m_jpsik) < veto_window) | (np.abs(fs_data['kmu_mass'] - m_psi2s) < veto_window)))
     fs_data = fs_data[mask_keep]
     datap.append(fs_data['kmu_mass'].copy())
@@ -59,14 +59,15 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
                                    fs_data['Opposite_sign_muon_4_momentum_y_component'], fs_data['Opposite_sign_muon_4_momentum_z_component'],
                                    kmu_swap_hypo=True)
     data.append(fs_data['kmu_mass'].copy())
-    fs_data = fs_data[(fs_data['kmu_mass'] < 3075) | (fs_data['kmu_mass'] > 3118)] # 99.27% removal | 98.45% kept
+    # fs_data = fs_data[fs_data['Kaon_PID_NN_score_for_kaon_hypothesis'] > 0.4]
+    fs_data = fs_data[(fs_data['kmu_mass'] < 3075) | (fs_data['kmu_mass'] > 3118)] # 99.27% removal | 98.66% kept
     datap.append(fs_data['kmu_mass'].copy())
 
 
     # Diagnostics
     if diagnostics:
         res = []
-        for d, dp in zip(data, datap):
+        for d, dp, u in zip(data, datap, ['A)','B)','C)']):
             res.append({
             "yield_pre_veto": len(d),
             "yield_post_veto": len(dp),
@@ -74,10 +75,12 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
             "fraction_kept": len(dp) / len(d),
             })
             if visual:
-                plt.hist(d, bins=50)
-                plt.hist(dp, bins=50)
+                plt.hist(d, bins=50, label='Data')
+                plt.hist(dp, bins=50, label='Data with Veto')
                 plt.grid()
+                plt.legend()
                 plt.ylabel('Yields')
+                plt.title(f'{u}')
                 plt.xlabel('Invariant Mass (MeV)')
                 plt.show()
         print('##### DISPLAYING DIAGNOSTICS FOR POST-SELECTION VETOES #####')

@@ -33,6 +33,7 @@ def calc_acp_q2_bins(data, visual=False):
         pulls = np.array(all_pulls[bin_idx]['pulls'])
         pulls = pulls[np.isfinite(pulls)]
         fit_syst_err = A_raw_err * np.std(pulls) / np.sqrt(len(pulls))
+        # fit_syst_err = np.sqrt(np.mean(pulls) ** 2 + fit_syst_err ** 2)
 
         Acp = A_raw - jpsik_acp
         A_err = np.sqrt(A_raw_err ** 2 + jpsik_acp_err ** 2 + fit_syst_err ** 2)
@@ -202,9 +203,12 @@ if 1 == 2:
 
 
 from zfit_func_pulls import *
+plt.hist(signal_data['Kaon_PID_NN_score_for_kaon_hypothesis'], bins=100)
+plt.show()
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
+high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True, visual=True)
+exit()
 
 A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
