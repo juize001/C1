@@ -221,10 +221,10 @@ from zfit_func_pulls import *
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
 high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 
-A_raw_tot, A_raw_err_tot, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+A_raw_tot, A_raw_err_tot_stat, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
-A_raw_err_tot = np.sqrt(A_raw_err_tot ** 2 + jpsik_acp_err ** 2)
-print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot}')
+A_raw_err_tot = np.sqrt(A_raw_err_tot_stat ** 2 + jpsik_acp_err ** 2)
+print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot} +- {A_raw_err_tot_stat} +- {jpsik_acp_err}')
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
 print(f"{'Acp':>7} | {'A_err':>7} | {'stat_err':>10} | {'sys_err':>12}")
 for a, a_err, stat_err, sys_err in zip(binned_data_all['Acp'], binned_data_all['A_err'], binned_data_all['stat_err'], binned_data_all['sys_err']):
