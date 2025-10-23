@@ -5,6 +5,8 @@ import textwrap
 import pandas as pd
 import lightgbm as lgb
 import matplotlib.pyplot as plt
+import joblib
+import numpy as np
 
 
 training_labels = ['Kaon_impact_parameter_chi2_wrt_primary_vertex', 'B_decay_vertex_fit_chi2',
@@ -33,8 +35,9 @@ def train_model(data_sig, data_back, training_labels=training_labels, t_params=[
     y = data['target']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
 
-    lgbm = lgb.LGBMClassifier(early_stopping_round=t_params[0], n_estimators=t_params[1], learning_rate=t_params[2], max_depth=t_params[3])
-    lgbm.fit(X_train, y_train, eval_set=[(X_test, y_test)])
+    # lgbm = lgb.LGBMClassifier(early_stopping_round=t_params[0], n_estimators=t_params[1], learning_rate=t_params[2], max_depth=t_params[3])
+    # lgbm.fit(X_train, y_train, eval_set=[(X_test, y_test)])
+    lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
     y_pred = lgbm.predict_proba(X_test)[:,1]
 
     if rocauc:
@@ -70,6 +73,15 @@ def train_model(data_sig, data_back, training_labels=training_labels, t_params=[
     if class_output:
         y_pred_signal = y_pred[y_test == 1]
         y_pred_background = y_pred[y_test == 0]
+
+        signal_kept = np.mean(y_pred_signal >= 0.95)
+        background_kept = np.mean(y_pred_background >= 0.95)
+        signal_removed = 1 - signal_kept
+        background_removed = 1 - background_kept
+        print(f"Signal kept:     {signal_kept:.3f}")
+        print(f"Signal removed:  {signal_removed:.3f}")
+        print(f"Background kept: {background_kept:.3f}")
+        print(f"Background removed: {background_removed:.3f}")
         # Plot histograms
         plt.figure(figsize=(8,6))
         plt.hist(y_pred_background, bins=100, alpha=0.5, label='Background', density=True)
@@ -79,7 +91,7 @@ def train_model(data_sig, data_back, training_labels=training_labels, t_params=[
         plt.title('Classifier response')
         plt.legend(loc='upper center')
         plt.grid(True)
-        plt.yscale('log')
+        # plt.yscale('log')
         plt.show()
 
     return lgbm, y_test, y_pred

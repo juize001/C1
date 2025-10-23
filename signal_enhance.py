@@ -26,6 +26,7 @@ def calc_acp_q2_bins(data, visual=False):
             continue
         try:
             A_raw, A_raw_err, val_Np, val_Nm, *_ = fit_asymmetry_cb(dat)
+            print(f'Bin {bin_idx} has been fitted.')
         except Exception as e:
             print(f"Bin {bin_idx} failed: {e}")
             continue
@@ -137,10 +138,12 @@ training_labels = '|'.join(training_labels)
 import lightgbm as lgb
 
 from training_func import *
-#lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.001)
+lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
+lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.999, class_output=True)
 #joblib.dump(lgbm, 'Models/model_ss2012_20_full.pkl')
 #lgbm = joblib.load('Models/model_ss2012.pkl')
-lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
+exit()
+
 
 from zfit_func_pulls import fit_asymmetry_cb
 
@@ -217,12 +220,9 @@ if 1 == 2:
 
 
 from zfit_func_pulls import *
-plt.hist(signal_data['Kaon_PID_NN_score_for_kaon_hypothesis'], bins=100)
-plt.show()
 # high_conf_signal = high_conf_signal[(high_conf_signal['B_invariant_mass'] > 5000) & (high_conf_signal['B_invariant_mass'] < 5500)]
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
-high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy(), diagnostics=True, visual=True)
-exit()
+high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 
 A_raw_tot, A_raw_err_tot_stat, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
 A_raw_tot = A_raw_tot - jpsik_acp
