@@ -138,11 +138,9 @@ training_labels = '|'.join(training_labels)
 import lightgbm as lgb
 
 from training_func import *
-lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
-lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.999, class_output=True)
+# lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.999, class_output=True)
 #joblib.dump(lgbm, 'Models/model_ss2012_20_full.pkl')
-#lgbm = joblib.load('Models/model_ss2012.pkl')
-exit()
+lgbm = joblib.load('Models/model_ss2012.pkl')
 
 
 from zfit_func_pulls import fit_asymmetry_cb
