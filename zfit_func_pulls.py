@@ -7,6 +7,7 @@ from scipy.stats import ks_2samp
 
 def fit_asymmetry_cb(df):
     df = df[(df['B_invariant_mass'] > 5150) & (df['B_invariant_mass'] < 5600)]
+    # print(len(df[abs(df['B_invariant_mass'] - 5280) < 100]))
     # Split by charge
     positive_data = df[df['B_assumed_particle_type'] > 0]
     negative_data = df[df['B_assumed_particle_type'] < 0]

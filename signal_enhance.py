@@ -54,12 +54,14 @@ def calc_acp_q2_bins(data, visual=False):
         q2_low = bin_bounds[bin_idx]
         q2_high = bin_bounds[bin_idx + 1]
         q2_center = 0.5 * (q2_low + q2_high)
+        q2_width = 0.5 * abs(q2_high - q2_low)
 
         results.append({
             "q2_bin": bin_idx,
             "q2_low": q2_low,
             "q2_high": q2_high,
             "q2_center": q2_center,
+            "q2_width": q2_width,
             "Acp": Acp,
             "A_err": A_err,
             "stat_err": stat_err,
@@ -74,16 +76,19 @@ def calc_acp_q2_bins(data, visual=False):
     binned_data_all = pd.DataFrame(results).sort_values("q2_center").reset_index(drop=True)
 
     if visual:
+        for xval in [8, 11, 12.5, 15]:
+            plt.axvline(x=xval, color='red', linestyle='-', linewidth=1)
+        plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
+        plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
         plt.errorbar(binned_data_all["q2_center"], binned_data_all["Acp"],
-                    yerr=binned_data_all["A_err"], fmt='o', capsize=4)
+                    yerr=binned_data_all["A_err"], xerr=binned_data_all["q2_width"], fmt='o', capsize=4)
         # for _, row in binned_data_all.iterrows():
         #     plt.text(
         #         row["q2_center"], row["A_raw"] + 0.005,
         #         f"N⁺={int(row['Nsig_plus'])}\nN⁻={int(row['Nsig_minus'])}",
         #         ha='center', va='bottom', fontsize=7, color='dimgray'
         #     )
-        plt.axhline(y=0, color='red', linestyle='--', linewidth=1)
-        plt.axhline(y=A_raw_tot, color='black', linestyle='--', linewidth=1)
+        
         plt.fill_between(
             binned_data_all["q2_center"],
             A_raw_tot - A_raw_err_tot,  # lower edge of band
@@ -92,8 +97,6 @@ def calc_acp_q2_bins(data, visual=False):
             alpha=0.2,
             label=r'$\pm 0.02$ uncertainty zone'
         )
-        for xval in [8, 11, 12.5, 15]:
-            plt.axvline(x=xval, color='red', linestyle='-', linewidth=1)
         plt.xlabel("Dimuon Mass Squared (GeV$^2$/$c^4$)")
         plt.ylabel("CP Asymmetry")
         # plt.title("Corrected Asymmetry vs Dimuon Mass Squared")
@@ -140,7 +143,7 @@ import lightgbm as lgb
 from training_func import *
 # lgbm, y_test, y_pred = train_model(signal_data, background_data, test_size=0.999, class_output=True)
 #joblib.dump(lgbm, 'Models/model_ss2012_20_full.pkl')
-lgbm = joblib.load('Models/model_ss2012.pkl')
+lgbm = joblib.load('Models/model_ss2012_20_full.pkl')
 
 
 from zfit_func_pulls import fit_asymmetry_cb
@@ -175,9 +178,10 @@ if 1 == 2:
     from zfit_func_pulls import *
     import gc
     import tensorflow as tf
-    binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
+    # binned_data, _, bin_bounds = split_into_q2_bins(high_conf_signal.copy())
     obs = zfit.Space('mass', limits=(5150, 5600))
 
+    binned_data = {0: high_conf_signal} # test entire dataset
     all_pulls = {}
 
     for bin_idx, dat in binned_data.items():
@@ -199,7 +203,7 @@ if 1 == 2:
         }
 
         # --- SAVE AFTER EACH BIN ---
-        joblib.dump(all_pulls, "binned_pulls2.pkl")
+        joblib.dump(all_pulls, "binned_pulls_main.pkl")
         print("Progress saved.")
 
         # --- RESET GRAPH after each bin ---
@@ -222,10 +226,15 @@ from zfit_func_pulls import *
 # sss = high_conf_signal[(high_conf_signal['B_invariant_mass'] < 5700) & (high_conf_signal['B_invariant_mass'] > 5150)].copy()
 high_conf_signal_with_vetoes = post_selection_vetoes(high_conf_signal.copy())
 
-A_raw_tot, A_raw_err_tot_stat, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+A_raw_tot, A_raw_err_tot_stat, yield_p, yield_m, *_ = fit_asymmetry_cb(high_conf_signal_with_vetoes.copy())
+print(f'Yields: Positive {yield_p} and negative {yield_m}')
+main_pull = joblib.load("main_pulls.pkl")[0]["pulls"]
+main_syst_err = np.sqrt((np.mean(main_pull) * A_raw_err_tot_stat) ** 2 + (A_raw_err_tot_stat * np.std(main_pull) / np.sqrt(len(main_pull))) ** 2)
 A_raw_tot = A_raw_tot - jpsik_acp
-A_raw_err_tot = np.sqrt(A_raw_err_tot_stat ** 2 + jpsik_acp_err ** 2)
-print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot} +- {A_raw_err_tot_stat} +- {jpsik_acp_err}')
+syst_err = np.sqrt(main_syst_err ** 2 + jpsik_acp_err ** 2)
+A_raw_err_tot = np.sqrt(A_raw_err_tot_stat ** 2 + syst_err ** 2)
+print(f'Corrected CP Asymmetry (raw) for Kmumu decay is {A_raw_tot} +- {A_raw_err_tot} +- {A_raw_err_tot_stat} +- {syst_err}')
+
 binned_data_all = calc_acp_q2_bins(high_conf_signal_with_vetoes, visual=True)
 print(f"{'Acp':>7} | {'A_err':>7} | {'stat_err':>10} | {'sys_err':>12}")
 for a, a_err, stat_err, sys_err in zip(binned_data_all['Acp'], binned_data_all['A_err'], binned_data_all['stat_err'], binned_data_all['sys_err']):

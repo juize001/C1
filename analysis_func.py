@@ -76,7 +76,7 @@ def post_selection_vetoes(fs_data, diagnostics=False, visual=False):
             })
             if visual:
                 plt.hist(d, bins=50, label='Data')
-                plt.hist(dp, bins=50, label='Data with Veto')
+                plt.hist(dp, bins=50, label='After Veto')
                 plt.grid()
                 plt.legend()
                 plt.ylabel('Yields')
